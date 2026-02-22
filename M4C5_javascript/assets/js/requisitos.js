@@ -59,21 +59,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const audio1 = document.getElementById('audio1');
     const audio2 = document.getElementById('audio2');
     
+    let musicaIniciada = false;
+    
     if (audio1 && audio2) {
         audio1.volume = 0.05;
         audio2.volume = 0.05;
         
-        audio1.play().then(() => {
-            audio1.addEventListener('ended', function() {
-                audio2.play();
-            });
-        }).catch(() => {
-            console.log('Autoplay bloqueado. El usuario debe interactuar primero.');
-        });
-        
-        audio2.addEventListener('ended', function() {
-            audio1.play();
-        });
+        document.addEventListener('click', function primerClick() {
+            if (!musicaIniciada) {
+                musicaIniciada = true;
+                audio1.play().then(() => {
+                    audio1.addEventListener('ended', function() {
+                        audio2.play();
+                    });
+                }).catch(err => console.log('Error al reproducir:', err));
+                
+                audio2.addEventListener('ended', function() {
+                    audio1.play();
+                });
+                
+                document.removeEventListener('click', primerClick);
+            }
+        }, { once: true });
     }
 });
 
@@ -85,7 +92,7 @@ function registrarJugador(e) {
     const nombre = document.getElementById('nombre').value.trim();
     const email = document.getElementById('email').value.trim();
     const edad = parseInt(document.getElementById('edad').value);
-    const altura = parseFloat(document.getElementById('altura').value);
+    const altura = parseFloat(document.getElementById('altura').value.replace(',', '.'));
     const posicion = document.getElementById('posicion').value;
     
     // Validar que todos los campos estén llenos
@@ -183,7 +190,7 @@ function verificarRequisitos(nombre, email, edad, altura, posicion) {
     // Construir mensaje
     let mensaje = '';
     if (aceptado) {
-        mensaje = `✅ ¡Felicidades ${nombre}! Has sido aceptado en el torneo como ${posicion} (${categoria}).\n\n📧 Pronto enviaremos un correo a ${email} con toda la información de la competición, horarios e indicaciones previas.`;
+        mensaje = `✅ ¡Felicidades ${nombre}! Has sido aceptado en el torneo como ${posicion} (${categoria}).\n\n📧 Pronto enviaremos un correo a tu email con toda la información de la competición, horarios e indicaciones previas.`;
     } else {
         mensaje = `❌ Lo sentimos ${nombre}, no cumples con los requisitos:\n${razones.join('\n')}`;
     }
@@ -201,13 +208,10 @@ function mostrarMensaje(texto, tipo) {
     mensajeDiv.textContent = texto;
     mensajeDiv.className = `mensaje ${tipo} show`;
     
-    // Hacer scroll al mensaje
-    mensajeDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    
-    // Ocultar después de 5 segundos
+    // Ocultar después de 10 segundos
     setTimeout(() => {
         mensajeDiv.classList.remove('show');
-    }, 5000);
+    }, 10000);
 }
 
 // Función para mostrar jugadores registrados
